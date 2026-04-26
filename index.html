@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daily Log</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 20px; background: #f4f4f9; }
+        .container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; height: 90vh; }
+        textarea { flex-grow: 1; width: 100%; padding: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none; resize: none; }
+        .footer { margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+        #count { font-weight: bold; font-size: 18px; transition: color 0.3s; }
+        .red { color: #ff4d4d; }
+        .green { color: #2ecc71; }
+        button { background: #3498db; color: white; border: none; padding: 12px 25px; border-radius: 25px; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button:active { transform: translateY(2px); box-shadow: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <textarea id="logger" placeholder="今、何を感じてる？" autofocus></textarea>
+    <div class="footer">
+        <div id="count" class="red">0 文字</div>
+        <button onclick="copyAndClear()">コピーして完了</button>
+    </div>
+</div>
+
+<script>
+    const textarea = document.getElementById('logger');
+    const countDisplay = document.getElementById('count');
+
+    // 文字数カウントと色の変更
+    textarea.addEventListener('input', () => {
+        const len = textarea.value.length;
+        countDisplay.textContent = `${len} 文字`;
+        
+        if (len >= 300 && len <= 800) {
+            countDisplay.className = 'green';
+        } else {
+            countDisplay.className = 'red';
+        }
+    });
+
+    // 日付フォーマット取得（朝6時リセット）
+    function getCustomDate() {
+        const now = new Date();
+        // 6時間引くことで、深夜0時〜5時59分までは「前日の日付」として扱う
+        const adjustedDate = new Date(now.getTime() - (6 * 60 * 60 * 1000));
+        
+        const y = adjustedDate.getFullYear();
+        const m = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+        const d = String(adjustedDate.getDate()).padStart(2, '0');
+        const week = ['日', '月', '火', '水', '木', '金', '土'][adjustedDate.getDay()];
+        
+        return `【${y}.${m}.${d}(${week})】`;
+    }
+
+    // コピー＆クリア機能
+    async function copyAndClear() {
+        if (textarea.value.trim() === "") return;
+
+        const confirmCheck = confirm("ライフログをコピーしますか？\n（OKを押すとテキストは消去されます）");
+        
+        if (confirmCheck) {
+            const title = getCustomDate();
+            const fullText = `${title}\n${textarea.value}`;
+
+            try {
+                await navigator.clipboard.writeText(fullText);
+                alert("コピーしました！");
+                textarea.value = ""; // テキスト消去
+                countDisplay.textContent = "0 文字";
+                countDisplay.className = 'red';
+            } catch (err) {
+                alert("コピーに失敗しました。ブラウザの権限を確認してください。");
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
