@@ -3,23 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Daily Log</title>
+    <title>Daily Log - Dark</title>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 20px; background: #f4f4f9; }
-        .container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; }
-        textarea { height: 500px; width: 100%; padding: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none; resize: none; }
-        .footer { margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
-        #count { font-weight: bold; font-size: 18px; transition: color 0.3s; }
-        .red { color: #ff4d4d; }
-        .green { color: #2ecc71; }
-        button { background: #3498db; color: white; border: none; padding: 12px 25px; border-radius: 25px; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        /* ダークモード用の配色設定 */
+        body { 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: #121212; /* 真っ黒すぎない深いグレー */
+            color: #e0e0e0; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        textarea { 
+            height: 500px; /* 前回の調整を反映 */
+            width: 100%; 
+            padding: 15px; 
+            background: #1e1e1e; /* 入力エリアは少し明るく */
+            color: #ffffff; 
+            border: 1px solid #333; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            box-sizing: border-box; 
+            outline: none; 
+            resize: none; 
+            caret-color: #3498db; /* カーソルの色 */
+        }
+        .footer { 
+            margin-top: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        #count { 
+            font-weight: bold; 
+            font-size: 18px; 
+        }
+        /* 暗い背景で見えやすい赤と緑 */
+        .red { color: #ff6b6b; }
+        .green { color: #51cf66; }
+
+        button { 
+            background: #2980b9; 
+            color: white; 
+            border: none; 
+            padding: 12px 25px; 
+            border-radius: 25px; 
+            font-size: 16px; 
+            font-weight: bold;
+            cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+        }
         button:active { transform: translateY(2px); box-shadow: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <textarea id="logger" placeholder="今、何を感じてる？" autofocus></textarea>
+    <textarea id="logger" placeholder="思考を吐き出そう..." autofocus></textarea>
     <div class="footer">
         <div id="count" class="red">0 文字</div>
         <button onclick="copyAndClear()">コピーして完了</button>
@@ -30,11 +75,9 @@
     const textarea = document.getElementById('logger');
     const countDisplay = document.getElementById('count');
 
-    // 文字数カウントと色の変更
     textarea.addEventListener('input', () => {
         const len = textarea.value.length;
         countDisplay.textContent = `${len} 文字`;
-        
         if (len >= 300 && len <= 800) {
             countDisplay.className = 'green';
         } else {
@@ -42,38 +85,30 @@
         }
     });
 
-    // 日付フォーマット取得（朝6時リセット）
     function getCustomDate() {
         const now = new Date();
-        // 6時間引くことで、深夜0時〜5時59分までは「前日の日付」として扱う
         const adjustedDate = new Date(now.getTime() - (6 * 60 * 60 * 1000));
-        
         const y = adjustedDate.getFullYear();
         const m = String(adjustedDate.getMonth() + 1).padStart(2, '0');
         const d = String(adjustedDate.getDate()).padStart(2, '0');
         const week = ['日', '月', '火', '水', '木', '金', '土'][adjustedDate.getDay()];
-        
         return `【${y}.${m}.${d}(${week})】`;
     }
 
-    // コピー＆クリア機能
     async function copyAndClear() {
         if (textarea.value.trim() === "") return;
-
-        const confirmCheck = confirm("ライフログをコピーしますか？\n（OKを押すとテキストは消去されます）");
-        
+        const confirmCheck = confirm("ライフログをコピーしますか？\n（OKでテキストは消去されます）");
         if (confirmCheck) {
             const title = getCustomDate();
             const fullText = `${title}\n${textarea.value}`;
-
             try {
                 await navigator.clipboard.writeText(fullText);
                 alert("コピーしました！");
-                textarea.value = ""; // テキスト消去
+                textarea.value = "";
                 countDisplay.textContent = "0 文字";
                 countDisplay.className = 'red';
             } catch (err) {
-                alert("コピーに失敗しました。ブラウザの権限を確認してください。");
+                alert("エラーが発生しました。");
             }
         }
     }
