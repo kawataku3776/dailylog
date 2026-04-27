@@ -3,27 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Daily Log - Dark</title>
+    <title>Daily Log - Focus</title>
     <style>
-        /* ダークモード用の配色設定 */
         body { 
             font-family: sans-serif; 
             margin: 0; 
-            padding: 20px; 
-            background: #121212; /* 真っ黒すぎない深いグレー */
+            padding: 15px; 
+            background: #121212; 
             color: #e0e0e0; 
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden; /* 画面の揺れ防止 */
         }
         .container { 
             max-width: 600px; 
             margin: 0 auto; 
             display: flex; 
             flex-direction: column; 
+            height: 100%;
         }
+        
+        /* 操作系を上に配置 */
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end; 
+            margin-bottom: 10px; 
+        }
+
+        /* 文字数は少し小さく */
+        #count { 
+            font-size: 14px; 
+            font-weight: bold;
+            margin-left: 5px;
+            margin-bottom: 5px;
+        }
+
+        /* カウントカラー */
+        .yellow { color: #f1c40f; }
+        .green { color: #2ecc71; }
+        .red { color: #e74c3c; }
+
+        button { 
+            background: #2980b9; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 20px; 
+            font-size: 14px; 
+            font-weight: bold;
+            cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+        }
+        button:active { transform: translateY(2px); box-shadow: none; }
+
+        /* 入力欄を画面最大に */
         textarea { 
-            height: 500px; /* 前回の調整を反映 */
+            flex-grow: 1;
             width: 100%; 
             padding: 15px; 
-            background: #1e1e1e; /* 入力エリアは少し明るく */
+            background: #1e1e1e; 
             color: #ffffff; 
             border: 1px solid #333; 
             border-radius: 12px; 
@@ -31,84 +70,68 @@
             box-sizing: border-box; 
             outline: none; 
             resize: none; 
-            caret-color: #3498db; /* カーソルの色 */
+            line-height: 1.5;
         }
-        .footer { 
-            margin-top: 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
-        #count { 
-            font-weight: bold; 
-            font-size: 18px; 
-        }
-        /* 暗い背景で見えやすい赤と緑 */
-        .red { color: #ff6b6b; }
-        .green { color: #51cf66; }
-
-        button { 
-            background: #2980b9; 
-            color: white; 
-            border: none; 
-            padding: 12px 25px; 
-            border-radius: 25px; 
-            font-size: 16px; 
-            font-weight: bold;
-            cursor: pointer; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
-        }
-        button:active { transform: translateY(2px); box-shadow: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <textarea id="logger" placeholder="思考を吐き出そう..." autofocus></textarea>
-    <div class="footer">
-        <div id="count" class="red">0 文字</div>
+    <div class="header">
+        <div id="count" class="yellow">0 文字</div>
         <button onclick="copyAndClear()">コピーして完了</button>
     </div>
+    <textarea id="logger" placeholder="書き始めよう..." autofocus></textarea>
 </div>
 
 <script>
     const textarea = document.getElementById('logger');
     const countDisplay = document.getElementById('count');
 
+    // 文字数カウントと色の3段階制御
     textarea.addEventListener('input', () => {
         const len = textarea.value.length;
         countDisplay.textContent = `${len} 文字`;
-        if (len >= 300 && len <= 800) {
+        
+        if (len < 300) {
+            countDisplay.className = 'yellow';
+        } else if (len <= 800) {
             countDisplay.className = 'green';
         } else {
             countDisplay.className = 'red';
         }
     });
 
+    // 日付フォーマット取得（朝6時リセット・■スタイル）
     function getCustomDate() {
         const now = new Date();
         const adjustedDate = new Date(now.getTime() - (6 * 60 * 60 * 1000));
+        
         const y = adjustedDate.getFullYear();
         const m = String(adjustedDate.getMonth() + 1).padStart(2, '0');
         const d = String(adjustedDate.getDate()).padStart(2, '0');
         const week = ['日', '月', '火', '水', '木', '金', '土'][adjustedDate.getDay()];
-        return `【${y}.${m}.${d}(${week})】`;
+        
+        return `■${y}.${m}.${d}(${week})`;
     }
 
     async function copyAndClear() {
         if (textarea.value.trim() === "") return;
+
         const confirmCheck = confirm("ライフログをコピーしますか？\n（OKでテキストは消去されます）");
+        
         if (confirmCheck) {
             const title = getCustomDate();
             const fullText = `${title}\n${textarea.value}`;
+
             try {
                 await navigator.clipboard.writeText(fullText);
                 alert("コピーしました！");
-                textarea.value = "";
+                textarea.value = ""; 
                 countDisplay.textContent = "0 文字";
-                countDisplay.className = 'red';
+                countDisplay.className = 'yellow';
             } catch (err) {
-                alert("エラーが発生しました。");
+                alert("コピーに失敗しました。");
             }
         }
     }
