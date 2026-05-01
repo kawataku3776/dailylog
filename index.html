@@ -2,41 +2,37 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Daily Log - Focus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Daily Log - Fixed UI</title>
     <style>
         body { 
             font-family: sans-serif; 
             margin: 0; 
-            padding: 15px; 
             background: #121212; 
             color: #e0e0e0; 
-            height: 100vh;
-            box-sizing: border-box;
-            overflow: hidden; /* 画面の揺れ防止 */
+            /* 画面の高さを固定（dvhはキーボード出現時を考慮した高さ） */
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* ボディ全体のスクロールを禁止 */
+            /* iPhoneのノッチ（上の出っ張り）対策 */
+            padding-top: env(safe-area-inset-top);
         }
-        .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100%;
-        }
-        
-        /* 操作系を上に配置 */
+
+        /* ヘッダー：画面上部に固定 */
         .header { 
             display: flex; 
             justify-content: space-between; 
-            align-items: flex-end; 
-            margin-bottom: 10px; 
+            align-items: center; 
+            padding: 10px 15px;
+            background: #121212; /* 入力欄が潜り込んでも見えないように背景を指定 */
+            z-index: 10;
+            border-bottom: 1px solid #333;
         }
 
-        /* 文字数は少し小さく */
         #count { 
             font-size: 14px; 
             font-weight: bold;
-            margin-left: 5px;
-            margin-bottom: 5px;
         }
 
         /* カウントカラー */
@@ -48,51 +44,57 @@
             background: #2980b9; 
             color: white; 
             border: none; 
-            padding: 10px 20px; 
+            padding: 8px 18px; 
             border-radius: 20px; 
             font-size: 14px; 
             font-weight: bold;
-            cursor: pointer; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
         }
-        button:active { transform: translateY(2px); box-shadow: none; }
 
-        /* 入力欄を画面最大に */
+        /* 入力エリア：ここだけがスクロールする */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow: hidden;
+        }
+
         textarea { 
-            flex-grow: 1;
+            flex: 1;
             width: 100%; 
-            padding: 15px; 
-            background: #1e1e1e; 
+            padding: 10px; 
+            background: transparent; /* 背景と一体化 */
             color: #ffffff; 
-            border: 1px solid #333; 
-            border-radius: 12px; 
+            border: none; 
             font-size: 16px; 
             box-sizing: border-box; 
             outline: none; 
             resize: none; 
-            line-height: 1.5;
+            line-height: 1.6;
+            /* 入力欄の中だけでスクロールさせる */
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; /* iOSでのスクロールを滑らかに */
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <div id="count" class="yellow">0 文字</div>
-        <button onclick="copyAndClear()">コピーして完了</button>
-    </div>
-    <textarea id="logger" placeholder="書き始めよう..." autofocus></textarea>
+<div class="header">
+    <div id="count" class="yellow">0 文字</div>
+    <button onclick="copyAndClear()">コピーして完了</button>
+</div>
+
+<div class="editor-container">
+    <textarea id="logger" placeholder="quantity over quality." autofocus></textarea>
 </div>
 
 <script>
     const textarea = document.getElementById('logger');
     const countDisplay = document.getElementById('count');
 
-    // 文字数カウントと色の3段階制御
     textarea.addEventListener('input', () => {
         const len = textarea.value.length;
         countDisplay.textContent = `${len} 文字`;
-        
         if (len < 300) {
             countDisplay.className = 'yellow';
         } else if (len <= 800) {
@@ -102,28 +104,22 @@
         }
     });
 
-    // 日付フォーマット取得（朝6時リセット・■スタイル）
     function getCustomDate() {
         const now = new Date();
         const adjustedDate = new Date(now.getTime() - (6 * 60 * 60 * 1000));
-        
         const y = adjustedDate.getFullYear();
         const m = String(adjustedDate.getMonth() + 1).padStart(2, '0');
         const d = String(adjustedDate.getDate()).padStart(2, '0');
         const week = ['日', '月', '火', '水', '木', '金', '土'][adjustedDate.getDay()];
-        
         return `■${y}.${m}.${d}(${week})`;
     }
 
     async function copyAndClear() {
         if (textarea.value.trim() === "") return;
-
         const confirmCheck = confirm("ライフログをコピーしますか？\n（OKでテキストは消去されます）");
-        
         if (confirmCheck) {
             const title = getCustomDate();
             const fullText = `${title}\n${textarea.value}`;
-
             try {
                 await navigator.clipboard.writeText(fullText);
                 alert("コピーしました！");
